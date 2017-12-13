@@ -133,7 +133,7 @@ public class RxPermissions {
         return Observable.just(null).compose(ensureEach(permissions));
     }
 
-    Observable<Permission> request(final Observable<?> trigger, final String... permissions) {
+    private Observable<Permission> request(final Observable<?> trigger, final String... permissions) {
         if (permissions == null || permissions.length == 0) {
             throw new IllegalArgumentException("RxPermissions.request/requestEach requires at least one input permission");
         }
@@ -163,7 +163,7 @@ public class RxPermissions {
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    Observable<Permission> requestImplementation(final String... permissions) {
+    private Observable<Permission> requestImplementation(final String... permissions) {
         List<Observable<Permission>> list = new ArrayList<>(permissions.length);
         List<String> unrequestedPermissions = new ArrayList<>();
 
@@ -180,6 +180,7 @@ public class RxPermissions {
 
             if (isRevoked(permission)) {
                 // Revoked by a policy, return a denied Permission object.
+                mRxPermissionsFragment.log("Requesting permission revoked by a policy");
                 list.add(Observable.just(new Permission(permission, false, false)));
                 continue;
             }
@@ -190,6 +191,8 @@ public class RxPermissions {
                 unrequestedPermissions.add(permission);
                 subject = PublishSubject.create();
                 mRxPermissionsFragment.setSubjectForPermission(permission, subject);
+            }else {
+                mRxPermissionsFragment.log("Requesting permission subject exists");
             }
 
             list.add(subject);

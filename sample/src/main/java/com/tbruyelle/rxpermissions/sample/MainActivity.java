@@ -1,8 +1,14 @@
 package com.tbruyelle.rxpermissions.sample;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -47,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void call(Boolean granted ) {
                                 Log.i(TAG, "Permission result " + granted);
+                                if(!granted){
+                                    openSettingActivity(MainActivity.this, "请开启必要的运行权限");
+                                }
                             }
                         });
             }
@@ -95,6 +104,29 @@ public class MainActivity extends AppCompatActivity {
                                 Log.i(TAG, "OnComplete");
                             }
                         });
+    }
+
+    private static void openSettingActivity(final Activity activity, String message) {
+        showMessageOKCancel(activity, message, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                Log.d(TAG, "getPackageName(): " + activity.getPackageName());
+                Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
+                intent.setData(uri);
+                activity.startActivity(intent);
+            }
+        });
+    }
+
+    private static void showMessageOKCancel(final Activity context, String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(context)
+                .setMessage(message)
+                .setPositiveButton("去设置", okListener)
+                .setNegativeButton("取消", null)
+                .create()
+                .show();
     }
 
     @Override
